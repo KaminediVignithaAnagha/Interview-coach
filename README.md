@@ -1,123 +1,103 @@
-# AIIC — Cloudflare Workers AI edition
+# AI Interview Coach — Cloudflare Workers AI edition
+#Notes Edition is also there.
 
-This is the cleaned Cloudflare version of the AI Interview Coach project.
+> **Practice smarter. Interview better.**
 
-## What changed
+AIIC (AI Interview Coach) is an AI-powered interview practice platform designed to help students and job seekers prepare for interviews through realistic, role-specific mock interviews.
 
-- The React UI is preserved.
-- Ollama and the Express server were removed.
-- The browser now calls same-origin `/api/...` routes.
-- Those routes run inside a Cloudflare Worker.
-- The Worker uses a Cloudflare Workers AI binding (`env.AI`) and the model `@cf/meta/llama-3.1-8b-instruct-fp8`.
-- No AI API key is stored in the React app or committed to GitHub.
-- Interview history and notes still use browser `localStorage`, just like before.
+Instead of simply giving users a list of interview questions, AIIC simulates an actual interview — asking questions, responding to answers, generating follow-ups when appropriate, and providing personalized feedback at the end.
 
-## Project structure
+---
 
-```text
-AIIC-Cloudflare-WorkersAI/
-├── src/                 React UI
-├── worker/index.js      Cloudflare Worker + Workers AI calls
-├── wrangler.jsonc       Cloudflare config + AI binding
-├── vite.config.js       React + Cloudflare Vite integration
-├── index.html
-└── package.json
-```
+## ✨ What is AIIC?
 
-## Run it locally
+Interview preparation can often feel repetitive and difficult to evaluate.
 
-You need Node.js installed.
+AIIC turns that preparation into an interactive experience.
 
-```bash
-npm install
-npm run dev
-```
+Users choose the role they want to prepare for, enter an AI-powered mock interview, answer questions one by one, and receive feedback on their performance after the interview.
 
-The Cloudflare Vite plugin runs the frontend and Worker together so the `/api/...` routes work locally too.
+### The core experience
 
-## Deploy it yourself to Cloudflare
+**Choose a role → Start the interview → Answer questions → Handle follow-ups → Get AI feedback**
 
-### 1. Make a free Cloudflare account
+AIIC focuses on making interview practice accessible, simple, and less intimidating.
 
-Create/sign in to your own Cloudflare account. Do not share the login with anyone.
+---
 
-### 2. Install dependencies
+## 🚀 Features
 
-```bash
-npm install
-```
+### 🎯 Role-Specific Interviews
+Generate interview questions based on the role the user is preparing for.
 
-### 3. Log Wrangler into your Cloudflare account
+### 💬 Interactive Mock Interviews
+AIIC conducts the interview one question at a time instead of presenting a static question bank.
 
-```bash
-npx wrangler login
-```
+### 🔄 Intelligent Follow-Up Questions
+When an answer is vague or needs clarification, the AI can ask a relevant follow-up question to make the interview feel more natural.
 
-This opens Cloudflare's login/authorization flow. You do not paste an AI API key into this project.
+### 📊 AI-Powered Feedback
+After the interview, AIIC analyzes the conversation and provides feedback including:
 
-### 4. Deploy
+- Language and communication feedback
+- Overall impression
+- Strengths
+- Areas for improvement
+- Overall interview score
 
-```bash
-npm run deploy
-```
+### 📝 Personal Notes
+Users can write and save notes while preparing for interviews.
 
-Wrangler will build the React app, deploy the Worker, attach the Workers AI binding, and give you a `*.workers.dev` URL.
+### 📚 Past Interviews
+Completed interviews can be reviewed later so users can track and reflect on their preparation.
 
-## Quick health check after deployment
+### 💾 Local Data Storage
+Interview history and notes are currently stored locally in the user's browser, keeping the initial version simple and lightweight.
 
-Open this path on your deployed site:
+---
 
-```text
-/api/health
-```
+## 🧠 How the AI Works
 
-You should get JSON showing `ok: true` and `provider: "Cloudflare Workers AI"`.
+AIIC uses **Cloudflare Workers AI** to power its interview intelligence.
 
-Then test the full app:
+The application uses an AI model to handle three main tasks:
 
-1. Enter a role.
-2. Generate interview questions.
-3. Answer a question.
-4. Confirm a follow-up may appear.
-5. Finish the interview.
-6. Confirm feedback appears.
-7. Return to the dashboard and confirm the saved interview is visible.
+1. **Question Generation**
+   - Creates a structured set of interview questions based on the selected role.
 
-## Important safety / GitHub notes
+2. **Interview Conversation**
+   - Evaluates the user's previous answer and determines whether a follow-up question would be useful.
 
-This project intentionally does not contain an AI API key.
+3. **Interview Analysis**
+   - Reviews the completed interview and generates structured feedback and an overall score.
 
-Before pushing to GitHub, keep these ignored:
+The AI is accessed through a server-side Cloudflare Worker, so sensitive AI credentials are not exposed in the frontend.
+
+---
+
+## 🏗️ Architecture
 
 ```text
-node_modules/
-dist/
-.wrangler/
-.dev.vars
-.env
-.env.*
-```
+                    ┌─────────────────────┐
+                    │      AIIC UI        │
+                    │   React + Vite      │
+                    └──────────┬──────────┘
+                               │
+                               │ API Requests
+                               ▼
+                    ┌─────────────────────┐
+                    │ Cloudflare Worker   │
+                    │     API Layer       │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Cloudflare Workers  │
+                    │        AI           │
+                    │                     │
+                    │ Llama 3.1 8B FP8    │
+                    └─────────────────────┘
 
-Do not commit Cloudflare tokens, passwords, cookies, `.dev.vars`, or `.env` files if you add them later.
-
-## Where the AI lives
-
-The only file that talks to the AI is:
-
-```text
-worker/index.js
-```
-
-The React UI talks only to these endpoints:
-
-```text
-POST /api/generate-questions
-POST /api/next-turn
-POST /api/analyze-interview
-```
-
-That separation means you can swap the AI model later without rebuilding the UI.
-
-## Cost note
-
-Workers AI has usage limits and pricing that Cloudflare can change. The project is structured to use Cloudflare's Workers AI binding, but you should check your Cloudflare dashboard and current Workers AI pricing/limits before inviting a large number of users. Add app-level rate limits before a public launch with significant traffic.
+              Browser Local Storage
+              ├── Interview History
+              └── Preparation Notes
